@@ -20,15 +20,13 @@ int main() {
   // Envia as requisições
   printf("Digite as requisições no formato:\n");
   printf("INSERT id nome\nDELETE id\nUPDATE id nome\nSELECT id\n");
-  printf("Digite SAIR para encerrar.\n");
+ 
   
   while (fgets(buffer, MAX_BUFFER_SIZE, stdin) != NULL) { // Loop que lê linhas da entrada padrão (stdin) até encontrar o fim do arquivo (EOF) ou um erro.
       buffer[strcspn(buffer, "\n")] = 0; // Remove o newline (entrada: INSERT 1 Rafael -> "INSERT 1 Rafael\n\0")
       write(pipe_fd, buffer, strlen(buffer) + 1);
       printf("...\n");
   }
-
-  printf("Fim da entrada. Encerrando o cliente...\n");
 
     return 0;
 }
