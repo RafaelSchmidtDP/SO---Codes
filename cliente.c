@@ -22,11 +22,13 @@ int main() {
   printf("INSERT id nome\nDELETE id\nUPDATE id nome\nSELECT id\n");
  
   
-  while (fgets(buffer, MAX_BUFFER_SIZE, stdin) != NULL) { // Loop que lê linhas da entrada padrão (stdin) até encontrar o fim do arquivo (EOF) ou um erro.
+  while (fgets(buffer, MAX_BUFFER_SIZE, stdin) != NULL) { // Loop inf que lê linhas da entrada padrão (stdin) até encontrar o fim do arquivo (EOF) ou um erro.
       buffer[strcspn(buffer, "\n")] = 0; // Retorna pos do \n e remove o newline (entrada: INSERT 1 Rafael -> "INSERT 1 Rafael\n\0")
-      write(pipe_fd, buffer, strlen(buffer) + 1);
+      write(pipe_fd, buffer, strlen(buffer)+1);
       printf("...\n");
   }
 
+
+    
     return 0;
 }

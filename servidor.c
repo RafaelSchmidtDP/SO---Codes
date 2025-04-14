@@ -8,7 +8,7 @@
 #include <errno.h>
 #include "banco.h" 
 
-#define NUM_TASKS MAX_BUFFER_SIZE // Número total de tarefas (adaptado ao tamanho do buffer)
+#define NUM_TASKS 5
 
 // Fila de tarefas
 typedef struct {
@@ -53,13 +53,15 @@ int inicializarBanco() {
     }
 
     int i = 0;
+    // le um formato especifico -> inteiro e uma string de 49 caracteres -> retorna 2 se leu corretamente
     while (fscanf(arquivo, "%d %49s", &banco[i].id, banco[i].nome) == 2 && i < MAX_REGISTROS) {
         i++;
     }
 
     fclose(arquivo);
-    num_registros = i;
-    return num_registros;
+
+    num_registros = i; // nao usado
+    return num_registros;// nao usado
 }
 
 int salvarBanco() {
@@ -154,15 +156,19 @@ void* startThread(void* args) {
         pthread_mutex_lock(&mutex);
 
         // Espera até que uma tarefa esteja disponível
-        while (task_index >= task_count) {
+        while (task_count == 0) {
             pthread_cond_wait(&condvar, &mutex);
+            //printf("Thread %ld: Aguardando por tarefas...\n", pthread_self());
         }
 
-        // Retira a próxima tarefa da fila
-        task = queue[task_index];
-        task_index++;
+        // Retira a próxima tarefa da fila (movendo as tarefas para frente)
+        task = queue[0];  // Pega a primeira tarefa
+        for (int i = 0; i < task_count - 1; i++) {
+            queue[i] = queue[i + 1];  // Move as tarefas para frente
+        }
+        task_count--;  // Decrementa o número de tarefas na fila
 
-        pthread_mutex_unlock(&mutex); // Desbloqueia o mutex
+        pthread_mutex_unlock(&mutex);  // Desbloqueia o mutex
 
         // Processa a tarefa
         processar_requisicao(task);
@@ -201,8 +207,13 @@ void processar_requisicao(Task task) {
         }
     } else if (sscanf(requisicao, "%s %d", tipo, &id) == 2) {
         if (strcmp(tipo, "DELETE") == 0) {
-            removerRegistro(id);
-            printf("Registro removido: ID = %d\n", id);
+            int indice = encontrarRegistro(id);  // Busca o registro pelo id
+            if (indice != -1) {  // Se o índice for diferente de -1, o registro existe
+                removerRegistro(id);
+                printf("Registro removido: ID = %d\n", id);
+            } else {
+                printf("Registro a ser deletado não existe!\n");
+            }
         } else if (strcmp(tipo, "SELECT") == 0) {
             int id_encontrado = encontrarRegistro(id);
             if (id_encontrado != -1) {
@@ -226,13 +237,14 @@ void add_task(const char *buffer, int tamanho) {
         memcpy(queue[task_count].data, buffer, tamanho);
         queue[task_count].tamanho = tamanho;
         task_count++;
-        pthread_cond_signal(&condvar); // Notifica as threads
+        pthread_cond_signal(&condvar); // Notifica as threads que há uma nova tarefa
     } else {
         fprintf(stderr, "Fila de tarefas cheia! Não foi possível adicionar tarefa.\n");
     }
 
     pthread_mutex_unlock(&mutex);
 }
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
