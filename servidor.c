@@ -61,7 +61,7 @@ int inicializarBanco() {
     }
 
     fclose(arquivo);
-    
+
     num_registros = i;
     return num_registros;
 }
@@ -226,13 +226,17 @@ void processar_requisicao(Task task) {
             }
 
         } else if (strcmp(tipo, "UPDATE") == 0) {
+
             Registro registro_atualizado = {id, ""};
             strcpy(registro_atualizado.nome, nome);
+
             if (update(registro_atualizado) == 0) {
                 printf("Registro atualizado: ID = %d, Nome = %s\n", id, nome);
-            } else {
+            } 
+            else {
                 printf("Registro com ID %d não encontrado para atualização.\n", id);
             }
+
         } else {
             printf("Comando inválido: %s\n", tipo);
         }
@@ -240,20 +244,26 @@ void processar_requisicao(Task task) {
     // Comando com apenas ID (ex: DELETE, SELECT)
     } else if (sscanf(requisicao, "%s %d", tipo, &id) == 2) {
         if (strcmp(tipo, "DELETE") == 0) {
+
             int indice = encontrarRegistro(id);
+
             if (indice != -1) {
                 removerRegistro(id);
                 printf("Registro removido: ID = %d\n", id);
             } else {
                 printf("Registro a ser deletado não existe!\n");
             }
+
         } else if (strcmp(tipo, "SELECT") == 0) {
+
             int id_encontrado = encontrarRegistro(id);
+
             if (id_encontrado != -1) {
                 printf("Registro encontrado: ID = %d, Nome = %s\n", banco[id_encontrado].id, banco[id_encontrado].nome);
             } else {
                 printf("Registro com ID %d não encontrado.\n", id);
             }
+            
         } else {
             printf("Comando inválido: %s\n", tipo);
         }
