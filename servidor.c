@@ -259,7 +259,7 @@ int main() {
     if (mkfifo(pipe_path, 0666) == -1) {
         if (errno != EEXIST) {
             perror("mkfifo");
-            exit(EXIT_FAILURE);
+            exit(1);
         }
     }
 
@@ -270,7 +270,7 @@ int main() {
     for (i = 0; i < THREAD_NUM; i++) {
         if (pthread_create(&th[i], NULL, &startThread, NULL) != 0) {
             perror("Failed to create the thread");
-            exit(EXIT_FAILURE);
+            exit(1);
         }
     }
 
@@ -278,16 +278,23 @@ int main() {
     pipe_fd = open(pipe_path, O_RDONLY);
     if (pipe_fd == -1) {
         perror("open pipe");
-        exit(EXIT_FAILURE);
+        exit(1);
     }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // Lê as requisições do pipe e as enfileira como tarefas
     ssize_t bytes_read;
-    while ((bytes_read = read(pipe_fd, buffer, MAX_BUFFER_SIZE)) > 0) {
+    while ((bytes_read = read(pipe_fd, buffer, MAX_BUFFER_SIZE)) > 0) { // loop infinito, só sai ser der erro ( -1 )
         add_task(buffer, bytes_read);
     }
-
+    if (bytes_read == 0) {
+        // O cliente terminou de enviar dados (fechou o lado de escrita do pipe)
+        printf("Cliente encerrou a comunicação.\n");
+        exit(0);
+    } else if (bytes_read == -1) {
+        perror("Erro ao ler do pipe");
+        exit(1);
+    }
     close(pipe_fd);
     unlink(pipe_path); // Remove o pipe
 

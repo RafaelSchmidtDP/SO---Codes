@@ -7,28 +7,41 @@
 #define MAX_BUFFER_SIZE 256
 
 int main() {
-    int pipe_fd; // Declara uma variável inteira para armazenar o descritor de arquivo do pipe.
-    char *pipe_path = "/tmp/meu_banco_pipe"; // Define o caminho do pipe nomeado que será usado para comunicação.
-    char buffer[MAX_BUFFER_SIZE]; // armazenar entrada do usuario
+    int pipe_fd;
+    char *pipe_path = "/tmp/meu_banco_pipe";
+    char buffer[MAX_BUFFER_SIZE];
+    char comando_sair[] = "SAIR"; // Define o comando para encerrar
 
     // Abre o pipe para escrita
-    pipe_fd = open(pipe_path, O_WRONLY); // abre o pipe nomeado para escrita WriteOnly
-    if (pipe_fd == -1) { // se não deu de abrir open retorna -1
+    pipe_fd = open(pipe_path, O_WRONLY);
+    if (pipe_fd == -1) {
         perror("open pipe");
         exit(1);
     }
-  // Envia as requisições
-  printf("Digite as requisições no formato:\n");
-  printf("INSERT id nome\nDELETE id\nUPDATE id nome\nSELECT id\n");
- 
-  
-  while (fgets(buffer, MAX_BUFFER_SIZE, stdin) != NULL) { // Loop inf que lê linhas da entrada padrão (stdin) até encontrar o fim do arquivo (EOF) ou um erro.
-      buffer[strcspn(buffer, "\n")] = 0; // Retorna pos do \n e remove o newline (entrada: INSERT 1 Rafael -> "INSERT 1 Rafael\n\0")
-      write(pipe_fd, buffer, strlen(buffer)+1);
-      printf("...\n");
-  }
 
+    // Envia as requisições
+    printf("Digite as requisições no formato:\n");
+    printf("INSERT id nome\nDELETE id\nUPDATE id nome\nSELECT id\n");
+    printf("Digite '%s' para encerrar a comunicação.\n", comando_sair);
 
-    
+    while (fgets(buffer, MAX_BUFFER_SIZE, stdin) != NULL) {
+        buffer[strcspn(buffer, "\n")] = 0; // Remove o newline
+
+        // Verifica se o comando de sair foi digitado
+        if (strcmp(buffer, comando_sair) == 0) {
+            printf("Encerrando a comunicação...\n");
+            break; // Sai do loop while
+        }
+
+        write(pipe_fd, buffer, strlen(buffer) + 1);
+        printf("...\n");
+    }
+
+    // Fecha o descritor de arquivo do pipe
+    if (close(pipe_fd) == -1) {
+        perror("close pipe");
+        exit(1);
+    }
+
     return 0;
 }
