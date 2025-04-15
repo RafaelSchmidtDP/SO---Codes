@@ -4,13 +4,13 @@
 #include <string.h>
 #include <fcntl.h>
 #include "banco.h"
-#define MAX_BUFFER_SIZE 256
+//#define MAX_BUFFER_SIZE 256
 
 int main() {
-    int pipe_fd;
-    char *pipe_path = "/tmp/meu_banco_pipe";
-    char buffer[MAX_BUFFER_SIZE];
-    char comando_sair[] = "SAIR"; // Define o comando para encerrar
+    int pipe_fd;                             // Descritor de arquivo para o pipe nomeado
+    char *pipe_path = "/tmp/meu_banco_pipe"; // Caminho para o pipe no sistema de arquivos
+    char buffer[MAX_BUFFER_SIZE];            // Buffer para armazenar os dados lidos do pipe
+    char comando_sair[] = "SAIR";            // Define o comando para encerrar
 
     // Abre o pipe para escrita
     pipe_fd = open(pipe_path, O_WRONLY);
