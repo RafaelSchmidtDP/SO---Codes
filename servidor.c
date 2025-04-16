@@ -269,7 +269,7 @@ void add_task(const char *buffer, int tamanho) {
     if (task_count < NUM_TASKS) {
         // Copia os dados do buffer para o campo 'data' da tarefa na fila
         // Isso armazena os dados da tarefa para que possam ser processados por uma thread
-        memcpy(queue[task_count].data, buffer, tamanho);
+        memcpy(queue[task_count].data, buffer, tamanho); // (destino, origem, tamanho)
 
         // Define o tamanho da tarefa
         queue[task_count].tamanho = tamanho;
@@ -296,16 +296,16 @@ int main() {
     char buffer[MAX_BUFFER_SIZE];            // Buffer para armazenar os dados lidos do pipe
     int i;
 
-    // Cria o pipe nomeado com permissões 0666 (leitura e escrita para todos os usuários)
+    // Cria o pipe nomeado com permissões 0666
     if (mkfifo(pipe_path, 0666) == -1) {
-        if (errno != EEXIST) { //Se ocorreu erro e o erro **não** foi "arquivo já existe" (EEXIST)
+        if (errno != EEXIST) { //Se ocorreu erro e o erro não foi "arquivo já existe" (EEXIST)
             perror("mkfifo");
             exit(1);
         }
     }
 
     // Inicializa o banco de dados
-    inicializarBanco();
+        inicializarBanco();
 
     // Cria as threads do pool
     for (i = 0; i < THREAD_NUM; i++) {

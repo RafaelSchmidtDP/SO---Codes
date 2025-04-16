@@ -11,7 +11,6 @@ int main() {
     char *pipe_path = "/tmp/meu_banco_pipe"; // Caminho para o pipe no sistema de arquivos
     char buffer[MAX_BUFFER_SIZE];            // Buffer para armazenar os dados lidos do pipe
     char comando_sair[] = "SAIR";            // Define o comando para encerrar
-
     // Abre o pipe para escrita
     pipe_fd = open(pipe_path, O_WRONLY);
     if (pipe_fd == -1) {
@@ -37,6 +36,17 @@ int main() {
         printf("...\n");
     }
 
+/*
+for (int i = 0; i < 10; i++) {
+    snprintf(buffer, sizeof(buffer), "INSERT %d Nome%d", i + 1, i + 1);
+    if (write(pipe_fd, buffer, strlen(buffer) + 1) == -1) {
+        perror("write to pipe");
+    } else {
+        printf("Enviado: %s\n", buffer);
+    }
+    usleep(100000); // Pequeno delay (100ms) 
+}
+*/
     // Fecha o descritor de arquivo do pipe
     if (close(pipe_fd) == -1) {
         perror("close pipe");
