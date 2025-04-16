@@ -23,7 +23,7 @@ int main() {
     printf("Digite as requisições no formato:\n");
     printf("INSERT id nome\nDELETE id\nUPDATE id nome\nSELECT id\n");
     printf("Digite '%s' para encerrar a comunicação.\n", comando_sair);
-
+    
     while (fgets(buffer, MAX_BUFFER_SIZE, stdin) != NULL) {
         buffer[strcspn(buffer, "\n")] = 0; // Remove o newline
 

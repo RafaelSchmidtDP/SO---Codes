@@ -188,14 +188,19 @@ void* startThread(void* args) {
         // Desbloqueia o mutex para permitir o acesso concorrente à fila por outras threads
         pthread_mutex_unlock(&mutex);
 
+        // Obtém o ID da thread que está processando a requisição
+        pthread_t tid = pthread_self();
+
+        // Exibe o ID da thread e os dados da tarefa sendo processada
+        printf("Thread %lu processando tarefa: %s\n", (unsigned long)tid, task.data);
+
         // Processa a requisição da tarefa (essa função será responsável pela execução da tarefa)
         processar_requisicao(task); // Executa a tarefa
     }
     return NULL; // Retorna NULL ao final da execução (nunca será alcançado, pois o loop é infinito)
 }
 
-
-// Interpreta e executa uma requisição recebida
+// Função de processamento de requisição
 void processar_requisicao(Task task) {
     char requisicao[MAX_BUFFER_SIZE];
     memcpy(requisicao, task.data, task.tamanho);
@@ -207,36 +212,27 @@ void processar_requisicao(Task task) {
     // Comando com ID e Nome (INSERT e UPDATE)
     if (sscanf(requisicao, "%s %d %49s", tipo, &id, nome) == 3) {
         if (strcmp(tipo, "INSERT") == 0) {
-
             Registro novo_registro = {id, ""};
 
             if (verificar_consistencia_id(novo_registro) == 1) {
                 strcpy(novo_registro.nome, nome);
-
                 if(inserirRegistro(novo_registro) == 0){
                     printf("Registro inserido: ID = %d, Nome = %s\n", id, nome);
+                } else {
+                    printf("Banco cheio\n");
                 }
-                else{
-                    printf("Banco cheio");
-                }
-            } 
-
-            else {
+            } else {
                 printf("Registro não pode ser inserido -> MOTIVO: ID repetido\n");
             }
-
         } else if (strcmp(tipo, "UPDATE") == 0) {
-
             Registro registro_atualizado = {id, ""};
             strcpy(registro_atualizado.nome, nome);
 
             if (update(registro_atualizado) == 0) {
                 printf("Registro atualizado: ID = %d, Nome = %s\n", id, nome);
-            } 
-            else {
+            } else {
                 printf("Registro com ID %d não encontrado para atualização.\n", id);
             }
-
         } else {
             printf("Comando inválido: %s\n", tipo);
         }
@@ -244,30 +240,23 @@ void processar_requisicao(Task task) {
     // Comando com apenas ID (ex: DELETE, SELECT)
     } else if (sscanf(requisicao, "%s %d", tipo, &id) == 2) {
         if (strcmp(tipo, "DELETE") == 0) {
-
             int indice = encontrarRegistro(id);
-
             if (indice != -1) {
                 removerRegistro(id);
                 printf("Registro removido: ID = %d\n", id);
             } else {
                 printf("Registro a ser deletado não existe!\n");
             }
-
         } else if (strcmp(tipo, "SELECT") == 0) {
-
             int id_encontrado = encontrarRegistro(id);
-
             if (id_encontrado != -1) {
                 printf("Registro encontrado: ID = %d, Nome = %s\n", banco[id_encontrado].id, banco[id_encontrado].nome);
             } else {
                 printf("Registro com ID %d não encontrado.\n", id);
             }
-
         } else {
             printf("Comando inválido: %s\n", tipo);
         }
-
     } else {
         printf("Formato de requisição inválido: %s\n", requisicao);
     }
