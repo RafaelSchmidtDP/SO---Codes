@@ -1,11 +1,11 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <pthread.h>
-#include <string.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <errno.h>
+#include <stdio.h>    // funções E/S
+#include <stdlib.h>   //Funções utilitárias(malloc,free,exit)
+#include <unistd.h>   // Funções POSIX
+#include <pthread.h>  // Threads
+#include <string.h>   // Manipulação d string
+#include <fcntl.h>    // Controle de arquivos (open, O_RDONLY, O_WRONLY, etc.)
+#include <sys/stat.h> // Operações com arquivos e permissões (mkfifo, stat, chmod, etc.)
+#include <errno.h>    // Manipulação de erros do sistema
 #include "banco.h" 
 
 #define NUM_TASKS 5 // Tamanho máximo da fila de tarefas
@@ -263,7 +263,7 @@ void processar_requisicao(Task task) {
             } else {
                 printf("Registro com ID %d não encontrado.\n", id);
             }
-            
+
         } else {
             printf("Comando inválido: %s\n", tipo);
         }

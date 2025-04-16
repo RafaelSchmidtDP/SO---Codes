@@ -1,8 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <fcntl.h>
+#include <stdio.h>  // funções E/S
+#include <stdlib.h>  //Funções utilitárias(malloc,free,exit)
+#include <unistd.h> // Funções POSIX
+#include <string.h> // Manipulação d string
+#include <fcntl.h> // Controle de arquivos (open, O_RDONLY, O_WRONLY, etc.)
 #include "banco.h"
 //#define MAX_BUFFER_SIZE 256
 
@@ -33,7 +33,7 @@ int main() {
             break; // Sai do loop while
         }
 
-        write(pipe_fd, buffer, strlen(buffer) + 1);
+        write(pipe_fd, buffer, strlen(buffer) + 1); // strlen nao conta com o \0, por isso +1
         printf("...\n");
     }
 
