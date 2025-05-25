@@ -7,35 +7,29 @@
 #include "list.h"
 #include "task.h"
 #include "CPU.h"
-#include "schedulers_edf.h"
 
-// Lista global de tasks
 struct node *task_list = NULL;
-
-// Variável de tempo global
 int tempo_atual = 0;
-
-// Controle do timer
 int rodando = 1;
 
-// Thread do timer (simula clock de hardware)
+// Timer que simula o clock
 void *timer_function(void *arg) {
     while (rodando) {
-        sleep(1);  // Simula 1 unidade de tempo por segundo
+        sleep(1);
         tempo_atual++;
         printf("[TIMER] Tempo atual: %d\n", tempo_atual);
     }
     return NULL;
 }
 
-// Função para adicionar uma task
+// Adiciona task na lista
 void add(char *name, int priority, int burst, int deadline) {
     static int tid_counter = 1;
     Task *task = create_task(name, tid_counter++, priority, burst, deadline, 0);
-    insert_at_tail(&task_list, task);  // Usando a função do list.h
+    insert_at_tail(&task_list, task);
 }
 
-// Função para encontrar a task com menor deadline
+// Escolhe a task com menor deadline (relativo ao tempo atual)
 Task *select_task_with_earliest_deadline() {
     struct node *temp = task_list;
     Task *selected = NULL;
@@ -49,7 +43,7 @@ Task *select_task_with_earliest_deadline() {
     return selected;
 }
 
-// Escalonador EDF
+// EDF sem preempção (executa até terminar)
 void schedule() {
     pthread_t timer_thread;
     pthread_create(&timer_thread, NULL, timer_function, NULL);
@@ -61,19 +55,26 @@ void schedule() {
 
         if (tarefa == NULL) {
             printf("[ESCALONADOR] Nenhuma tarefa disponível. Ocioso.\n");
-            break;
+            sleep(1);
+            tempo_atual++;
+            continue;
         }
 
         printf("[ESCALONADOR] Executando task %s (TID %d) com deadline %d\n",
                tarefa->name, tarefa->tid, tarefa->deadline);
 
-        run(tarefa, tarefa->burst);  // Executa a task inteira
+        run(tarefa, tarefa->burst);
 
-        delete_task(&task_list, tarefa);  // Remove a task da lista após execução
-        free_task(tarefa); // Não esqueça de liberar a memória da task!
+        if (tempo_atual > tarefa->deadline) {
+            printf("[ALERTA] Task %s perdeu o deadline! (Deadline: %d, Tempo final: %d)\n",
+                   tarefa->name, tarefa->deadline, tempo_atual);
+        }
+
+        delete_task(&task_list, tarefa);
+        free_task(tarefa);
     }
 
-    rodando = 0;  // Para o timer
+    rodando = 0;
     pthread_join(timer_thread, NULL);
 
     printf("[ESCALONADOR EDF FINALIZADO]\n");
