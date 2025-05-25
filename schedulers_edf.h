@@ -1,13 +1,12 @@
-// schedulers_edf.h - Earliest Deadline First
-#ifndef SCHEDULERS_EDF_H
-#define SCHEDULERS_EDF_H
+#ifndef SCHEDULE_EDF_H
+#define SCHEDULE_EDF_H
+#define MIN_PRIORITY 1
+#define MAX_PRIORITY 10
 
-#include "task.h"
+// add a task to the list 
+void add(char *name, int priority, int burst, int deadline);
 
-// insere nova tarefa
-void add(Task *t);
-
-// faz o escalonamento de acordo com EDF
+// invoke the scheduler
 void schedule();
 
-#endif // SCHEDULERS_EDF_H
+#endif
