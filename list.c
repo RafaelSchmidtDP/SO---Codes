@@ -1,41 +1,53 @@
-/**
- * Various list operations using direct head pointer management
- */
+// list.c - VERSÃO CORRIGIDA
+// Deve conter APENAS as definições da struct node, Task, e funções de lista/tarefa.
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "list.h"
-#include "task.h"
+#include "list.h" 
+#include "task.h" // Inclui o cabeçalho da tarefa para a definição da struct Task
 
+// Variável global estática para gerar IDs de tarefa únicos
+// Corretamente definida aqui se create_task está em list.c
+static int tid_counter = 0;
 
-
-Task *create_task(char *name, int tid, int priority, int burst, int deadline, int periodo) {
+/**
+ * @brief Cria uma nova estrutura Task e a inicializa.
+ * O Task ID (tid) é gerado automaticamente.
+ * @param name Nome da tarefa.
+ * @param priority Prioridade da tarefa.
+ * @param burst Tempo de execução total da tarefa.
+ * @param deadline Prazo final da tarefa.
+ * @param periodo Período da tarefa (para tarefas periódicas).
+ * @return Um ponteiro para a nova Task criada.
+ */
+Task *create_task(char *name, int priority, int burst, int deadline, int periodo) {
     Task *task = (Task *)malloc(sizeof(Task));
-    if (!task) {
-        perror("Erro ao alocar memória para Task");
+    if (task == NULL) {
+        perror("Falha ao alocar memória para a tarefa");
         exit(EXIT_FAILURE);
     }
     task->name = strdup(name);
-    task->tid = tid;
+    task->tid = ++tid_counter; // Atribui um TID único
     task->priority = priority;
     task->burst = burst;
-    task->remaining = 0; // Começa sem instância ativa
+    task->deadline = deadline;
     task->periodo = periodo;
 
-    task->deadline_rel = deadline;
-    task->release_time = 0;
-    task->deadline = deadline; // Primeiro deadline
-    task->next_release = 0;     // Primeira liberação no tempo 0
+    task->arrival = 0; // Será definido quando a tarefa for adicionada à fila de prontos ou "chegar"
+    task->remaining = burst; // Inicialmente, o tempo restante é o burst total
+    task->next_release = 0;  // Para tarefas periódicas, a próxima vez que estará pronta
+    task->release_count = 0; // Quantas vezes foi liberada
 
-    task->release_count = 0;
+    task->waiting_time = 0; // Inicializa o tempo de espera
     return task;
 }
 
-
-
-// Função auxiliar para liberar uma Task
+/**
+ * @brief Libera a memória alocada para uma estrutura Task.
+ * @param task Ponteiro para a Task a ser liberada.
+ */
 void free_task(Task *task) {
     if (task) {
         free(task->name);
@@ -43,7 +55,11 @@ void free_task(Task *task) {
     }
 }
 
-// Insere um novo nó no início da lista (comportamento de pilha)
+/**
+ * @brief Insere um novo nó no início da lista (comportamento de pilha).
+ * @param head Ponteiro para o ponteiro da cabeça da lista.
+ * @param newTask Ponteiro para a Task a ser inserida.
+ */
 void insert_at_head(struct node **head, Task *newTask) {
     struct node *newNode = (struct node*) malloc(sizeof(struct node));
     if (newNode == NULL) {
@@ -55,7 +71,11 @@ void insert_at_head(struct node **head, Task *newTask) {
     *head = newNode;       // A cabeça da lista agora é o novo nó
 }
 
-// Insere um novo nó no final da lista (comportamento FIFO)
+/**
+ * @brief Insere um novo nó no final da lista (comportamento FIFO).
+ * @param head Ponteiro para o ponteiro da cabeça da lista.
+ * @param newTask Ponteiro para a Task a ser inserida.
+ */
 void insert_at_tail(struct node **head, Task *newTask) {
     struct node *newNode = (struct node*) malloc(sizeof(struct node));
     if (newNode == NULL) {
@@ -78,7 +98,41 @@ void insert_at_tail(struct node **head, Task *newTask) {
     }
 }
 
-// Deleta a tarefa selecionada da lista
+/**
+ * @brief Insere um novo nó na lista, mantendo a ordem por deadline (Earliest Deadline First).
+ * A tarefa com o menor deadline fica no início da lista.
+ * @param head Ponteiro para o ponteiro da cabeça da lista.
+ * @param newTask Ponteiro para a Task a ser inserida.
+ */
+void insert_sorted_by_deadline(struct node **head, Task *newTask) {
+    struct node *newNode = (struct node*) malloc(sizeof(struct node));
+    if (newNode == NULL) {
+        perror("Falha ao alocar memória para o novo nó");
+        exit(EXIT_FAILURE);
+    }
+    newNode->task = newTask;
+    newNode->next = NULL;
+
+    // Se a lista está vazia ou a nova tarefa tem um deadline anterior ao da cabeça
+    if (*head == NULL || newTask->deadline < (*head)->task->deadline) {
+        newNode->next = *head;
+        *head = newNode;
+    } else {
+        struct node *current = *head;
+        // Percorre a lista para encontrar o ponto de inserção correto
+        while (current->next != NULL && newTask->deadline >= current->next->task->deadline) {
+            current = current->next;
+        }
+        newNode->next = current->next;
+        current->next = newNode;
+    }
+}
+
+/**
+ * @brief Deleta a tarefa selecionada da lista.
+ * @param head Ponteiro para o ponteiro da cabeça da lista.
+ * @param task Ponteiro para a Task a ser deletada.
+ */
 void delete_task(struct node **head, Task *task) {
     if (*head == NULL) {
         return; // Lista vazia
@@ -88,7 +142,7 @@ void delete_task(struct node **head, Task *task) {
     struct node *prev = NULL;
 
     // Caso especial: a tarefa a ser deletada é a primeira da lista
-    if (strcmp(task->name, temp->task->name) == 0) {
+    if (temp->task == task) { // Compara diretamente os ponteiros da tarefa
         *head = temp->next; // A cabeça da lista avança
         free(temp);         // Libera a memória do nó
         return;
@@ -97,7 +151,7 @@ void delete_task(struct node **head, Task *task) {
     // Procura a tarefa na lista
     prev = temp;
     temp = temp->next;
-    while (temp != NULL && strcmp(task->name, temp->task->name) != 0) {
+    while (temp != NULL && temp->task != task) { // Compara diretamente os ponteiros da tarefa
         prev = temp;
         temp = temp->next;
     }
@@ -110,7 +164,11 @@ void delete_task(struct node **head, Task *task) {
     // else: tarefa não encontrada na lista, não faz nada
 }
 
-// Pega a primeira tarefa da lista sem removê-la
+/**
+ * @brief Pega a primeira tarefa da lista sem removê-la.
+ * @param head Ponteiro para a cabeça da lista.
+ * @return Ponteiro para a primeira Task na lista, ou NULL se a lista estiver vazia.
+ */
 Task* get_first_task(struct node *head) {
     if (head == NULL) {
         return NULL; // Lista vazia
@@ -118,32 +176,3 @@ Task* get_first_task(struct node *head) {
     return head->task;
 }
 
-// Remove e retorna a primeira tarefa da lista
-Task* remove_first_task(struct node **head) {
-    if (*head == NULL) {
-        return NULL; // Lista vazia
-    }
-    struct node *temp = *head; // Guarda o nó da cabeça
-    Task *task = temp->task;   // Pega a tarefa do nó da cabeça
-    *head = temp->next;        // A cabeça da lista avança
-    free(temp);                // Libera a memória do nó removido
-    return task;               // Retorna a tarefa
-}
-
-// Percorre e imprime os elementos da lista
-void traverse_list(struct node *head) {
-    if (head == NULL) {
-        printf("Lista vazia.\n");
-        return;
-    }
-    struct node *temp = head;
-    while (temp != NULL) {
-        printf("[%s] [%d] [%d] [%d] [%d]\n",
-               temp->task->name,
-               temp->task->priority,
-               temp->task->burst,
-               temp->task->deadline,
-               temp->task->waiting_time);
-        temp = temp->next;
-    }
-}
