@@ -9,6 +9,31 @@
 #include "list.h"
 #include "task.h"
 
+
+
+Task* create_task(const char* name, int tid, int priority, int burst, int deadline, int waiting_time) {
+    Task *newTask = (Task*) malloc(sizeof(Task));
+    if (!newTask) {
+        perror("Erro ao alocar memória para Task");
+        exit(EXIT_FAILURE);
+    }
+    newTask->name = strdup(name); // copia a string para evitar problemas
+    newTask->tid = tid;
+    newTask->priority = priority;
+    newTask->burst = burst;
+    newTask->deadline = deadline;
+    newTask->waiting_time = waiting_time;
+    return newTask;
+}
+
+// Função auxiliar para liberar uma Task
+void free_task(Task *task) {
+    if (task) {
+        free(task->name);
+        free(task);
+    }
+}
+
 // Insere um novo nó no início da lista (comportamento de pilha)
 void insert_at_head(struct node **head, Task *newTask) {
     struct node *newNode = (struct node*) malloc(sizeof(struct node));
