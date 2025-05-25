@@ -32,7 +32,7 @@ void *timer_function(void *arg) {
 void add(char *name, int priority, int burst, int deadline) {
     static int tid_counter = 1;
     Task *task = create_task(name, tid_counter++, priority, burst, deadline, 0);
-    insert(&task_list, task);
+    insert_at_tail(&task_list, task);  // Usando a função do list.h
 }
 
 // Função para encontrar a task com menor deadline
@@ -69,7 +69,8 @@ void schedule() {
 
         run(tarefa, tarefa->burst);  // Executa a task inteira
 
-        delete(&task_list, tarefa);  // Remove a task da lista após execução
+        delete_task(&task_list, tarefa);  // Remove a task da lista após execução
+        free_task(tarefa); // Não esqueça de liberar a memória da task!
     }
 
     rodando = 0;  // Para o timer
