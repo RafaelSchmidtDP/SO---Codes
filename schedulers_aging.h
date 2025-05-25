@@ -1,13 +1,12 @@
-// schedulers_aging.h - Prioridade com Aging
-#ifndef SCHEDULERS_AGING_H
-#define SCHEDULERS_AGING_H
+#ifndef ESCALONADOR_H
+#define ESCALONADOR_H
 
+#define N 4 // Número de processos (pode ajustar)
+#define LIMIAR_AGING 3 // Limiar de envelhecimento
 #include "task.h"
+// Funções do escalonador
+void aging(Task processos[], int n, int exec_pid);
+int proximo_processo(Task processos[], int n);
+int todos_finalizados(Task processos[], int n);
 
-// insere nova tarefa
-void add(Task *t);
-
-// faz o escalonamento de acordo com Aging
-void schedule();
-
-#endif // SCHEDULERS_AGING_H
+#endif
