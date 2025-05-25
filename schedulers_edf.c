@@ -48,18 +48,35 @@ void atualiza_periodicidade() {
         Task *tarefa = temp->task;
 
         if (tempo_atual == tarefa->next_release) {
-            tarefa->remaining = tarefa->burst;
-            tarefa->deadline = tarefa->next_release;
-            tarefa->next_release += tarefa->periodo;
-            tarefa->release_count++;
+            // Libera nova instância se a anterior terminou
+            if (tarefa->remaining == 0) {
+                tarefa->remaining = tarefa->burst;
+                tarefa->release_count++;
+                tarefa->release_time = tarefa->next_release;
+                tarefa->deadline = tarefa->release_time + tarefa->deadline_rel; // Deadline absoluto desta instância
 
-            printf("[RELEASE] Tarefa %s liberada. Deadline: %d (Release count: %d)\n",
-                   tarefa->name, tarefa->deadline, tarefa->release_count);
+                printf("[RELEASE] Tarefa %s liberada. Release: %d, Deadline: %d (Release count: %d)\n",
+                       tarefa->name, tarefa->release_time, tarefa->deadline, tarefa->release_count);
+            } else {
+                printf("[PERDA] Tarefa %s não completou antes de seu próximo release! (Release anterior: %d, Deadline anterior: %d)\n",
+                       tarefa->name, tarefa->release_time, tarefa->deadline);
+                // Marca a anterior como perdida e força nova instância
+                tarefa->remaining = tarefa->burst;
+                tarefa->release_count++;
+                tarefa->release_time = tarefa->next_release;
+                tarefa->deadline = tarefa->release_time + tarefa->deadline_rel;
+
+                printf("[RELEASE-FORÇADO] Nova instância da tarefa %s liberada mesmo com perda anterior.\n",
+                       tarefa->name);
+            }
+
+            tarefa->next_release += tarefa->periodo;
         }
 
         temp = temp->next;
     }
 }
+
 
 // Verifica se todas as tarefas atingiram 2 deadlines
 int todas_tarefas_completaram() {

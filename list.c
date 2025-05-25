@@ -21,14 +21,18 @@ Task *create_task(char *name, int tid, int priority, int burst, int deadline, in
     task->tid = tid;
     task->priority = priority;
     task->burst = burst;
-    task->remaining = burst;
-
-    task->deadline = deadline; // Primeiro deadline correto (tempo inicial + deadline relativo)
+    task->remaining = 0; // Começa sem instância ativa
     task->periodo = periodo;
-    task->next_release = periodo; // Primeira liberação após o período inicial
 
+    task->deadline_rel = deadline;
+    task->release_time = 0;
+    task->deadline = deadline; // Primeiro deadline
+    task->next_release = 0;     // Primeira liberação no tempo 0
+
+    task->release_count = 0;
     return task;
 }
+
 
 
 // Função auxiliar para liberar uma Task

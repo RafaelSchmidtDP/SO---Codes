@@ -1,7 +1,3 @@
-// task.h  (use este em todos os módulos)
-#ifndef TASK_H
-#define TASK_H
-
 typedef struct {
     char *name;
     int tid;
@@ -9,10 +5,10 @@ typedef struct {
     int burst;
     int waiting_time;
     int remaining;
-    int deadline;
     int periodo;
-    int next_release;
+    int deadline_rel;   // Deadline relativo (fixo)
+    int release_time;   // Tempo em que essa instância foi liberada
+    int deadline;       // Deadline absoluto da instância atual
+    int next_release;   // Próximo tempo de liberação
     int release_count;
 } Task;
-
-#endif // TASK_H
