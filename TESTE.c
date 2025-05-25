@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "schedulers_rr_p.h"
+#include "schedulers_rr.h"
 
 // Função principal
 int main() {
