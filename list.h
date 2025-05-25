@@ -21,7 +21,7 @@ void delete_task(struct node **head, Task *task); // Deleta uma tarefa específi
 Task* get_first_task(struct node *head); // Pega a primeira tarefa sem remover
 Task* remove_first_task(struct node **head); // Remove e retorna a primeira tarefa
 void traverse_list(struct node *head); // Percorre e imprime a lista
-Task* create_task(const char* name, int tid, int priority, int burst, int deadline, int waiting_time);
+Task *create_task(char *name, int tid, int priority, int burst, int deadline, int periodo) {
 void free_task(Task *task);
 
 #endif // LIST_H

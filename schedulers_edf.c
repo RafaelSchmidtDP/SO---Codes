@@ -22,14 +22,14 @@ void *timer_function(void *arg) {
     return NULL;
 }
 
-// Adiciona task na lista
-void add(char *name, int priority, int burst, int deadline) {
+// Adiciona task na lista (tarefa periódica)
+void add(char *name, int priority, int burst, int deadline, int periodo) {
     static int tid_counter = 1;
-    Task *task = create_task(name, tid_counter++, priority, burst, deadline, 0);
+    Task *task = create_task(name, tid_counter++, priority, burst, deadline, periodo);
     insert_at_tail(&task_list, task);
 }
 
-// Escolhe a task com menor deadline (relativo ao tempo atual)
+// Escolhe a task com menor deadline relativo
 Task *select_task_with_earliest_deadline() {
     struct node *temp = task_list;
     Task *selected = NULL;
@@ -43,38 +43,75 @@ Task *select_task_with_earliest_deadline() {
     return selected;
 }
 
-// EDF sem preempção (executa até terminar)
+// Função para atualizar deadlines e adicionar instâncias periódicas
+void atualiza_periodicidade() {
+    struct node *temp = task_list;
+
+    while (temp != NULL) {
+        Task *tarefa = temp->task;
+
+        if (tempo_atual >= tarefa->next_release) {
+            if (tarefa->remaining == 0) {
+                // Reset da tarefa periódica
+                tarefa->remaining = tarefa->burst;
+                tarefa->deadline = tempo_atual + tarefa->periodo;
+                tarefa->next_release += tarefa->periodo;
+                printf("[RELEASE] Tarefa %s liberada. Novo deadline: %d\n", tarefa->name, tarefa->deadline);
+            }
+        }
+
+        temp = temp->next;
+    }
+}
+
+// Escalonador EDF preemptivo e periódico
 void schedule() {
     pthread_t timer_thread;
     pthread_create(&timer_thread, NULL, timer_function, NULL);
 
-    printf("\n[ESCALONADOR EDF INICIADO]\n");
+    printf("\n[ESCALONADOR EDF PERIODICO E PREEMPTIVO INICIADO]\n");
 
-    while (task_list != NULL) {
-        Task *tarefa = select_task_with_earliest_deadline();
+    Task *executando = NULL;
 
-        if (tarefa == NULL) {
+    while (rodando) {
+        atualiza_periodicidade();
+
+        Task *proxima = select_task_with_earliest_deadline();
+
+        if (proxima == NULL) {
             printf("[ESCALONADOR] Nenhuma tarefa disponível. Ocioso.\n");
             sleep(1);
             tempo_atual++;
             continue;
         }
 
-        printf("[ESCALONADOR] Executando task %s (TID %d) com deadline %d\n",
-               tarefa->name, tarefa->tid, tarefa->deadline);
-
-        run(tarefa, tarefa->burst);
-
-        if (tempo_atual > tarefa->deadline) {
-            printf("[ALERTA] Task %s perdeu o deadline! (Deadline: %d, Tempo final: %d)\n",
-                   tarefa->name, tarefa->deadline, tempo_atual);
+        // Preempção: troca se a próxima tem deadline menor que a atual
+        if (executando == NULL || proxima->deadline < executando->deadline) {
+            executando = proxima;
+            printf("[ESCALONADOR] Executando task %s (TID %d) com deadline %d\n",
+                   executando->name, executando->tid, executando->deadline);
         }
 
-        delete_task(&task_list, tarefa);
-        free_task(tarefa);
+        // Executa 1 unidade de tempo
+        run(executando, 1);
+        executando->remaining--;
+
+        // Verifica deadline perdido
+        if (tempo_atual > executando->deadline && executando->remaining > 0) {
+            printf("[ALERTA] Task %s perdeu o deadline! (Deadline: %d, Tempo atual: %d)\n",
+                   executando->name, executando->deadline, tempo_atual);
+        }
+
+        // Se terminou, fica aguardando próxima liberação
+        if (executando->remaining == 0) {
+            printf("[ESCALONADOR] Tarefa %s terminou essa instância.\n", executando->name);
+            executando = NULL;
+        }
+
+        sleep(1);
+        tempo_atual++;
     }
 
-    rodando = 0;
     pthread_join(timer_thread, NULL);
 
     printf("[ESCALONADOR EDF FINALIZADO]\n");

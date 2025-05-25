@@ -7,11 +7,9 @@ int main() {
     printf("Teste Escalonador RR com Prioridade\n");
     printf("========================\n\n");
 
-    add("Tarefa1", 2, 10, 25);  // deadline 25
-    add("Tarefa2", 1, 5, 15);   // deadline 15
-    add("Tarefa3", 3, 8, 30);   // deadline 30
-    add("Tarefa4", 2, 6, 20);   // deadline 20
-    add("Tarefa5", 1, 4, 10);   // deadline 10
+    add("Tarefa1", 1, 2, 4, 4); // periodo 4, capacidade 2, deadline 4
+    add("Tarefa2", 1, 1, 5, 5); // periodo 5, capacidade 1, deadline 5
+    add("Tarefa3", 1, 2, 8, 8); // periodo 8, capacidade 2, deadline 8
 
     printf("\n>>> Iniciando Escalonamento...\n");
     schedule();
