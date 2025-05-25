@@ -2,13 +2,16 @@
 #ifndef TASK_H
 #define TASK_H
 
-typedef struct Task {
+typedef struct {
     char *name;
-    int   tid;
-    int   priority;      // 1 = maior prioridade
-    int   burst;         // tempo restante de execução
-    int   deadline;      // usado no EDF
-    int   waiting_time;  // usado no Aging
+    int tid;
+    int priority;
+    int burst;
+    int waiting_time;
+    int remaining;
+    int deadline;
+    int periodo;
+    int next_release;
 } Task;
 
 #endif // TASK_H

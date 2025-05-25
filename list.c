@@ -11,19 +11,21 @@
 
 
 
-Task* create_task(const char* name, int tid, int priority, int burst, int deadline, int waiting_time) {
-    Task *newTask = (Task*) malloc(sizeof(Task));
-    if (!newTask) {
+Task *create_task(char *name, int tid, int priority, int burst, int deadline, int periodo) {
+    Task *task = (Task *)malloc(sizeof(Task));
+     if (!task) {
         perror("Erro ao alocar memória para Task");
         exit(EXIT_FAILURE);
     }
-    newTask->name = strdup(name); // copia a string para evitar problemas
-    newTask->tid = tid;
-    newTask->priority = priority;
-    newTask->burst = burst;
-    newTask->deadline = deadline;
-    newTask->waiting_time = waiting_time;
-    return newTask;
+    task->name = strdup(name);
+    task->tid = tid;
+    task->priority = priority;
+    task->burst = burst;
+    task->remaining = burst;
+    task->deadline = deadline;
+    task->periodo = periodo;
+    task->next_release = 0;
+    return task;
 }
 
 // Função auxiliar para liberar uma Task
