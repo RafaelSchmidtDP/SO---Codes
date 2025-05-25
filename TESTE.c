@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "schedulers_rr.h"
+#include "schedulers_edf.h"
 
 // Função principal
 int main() {
@@ -7,12 +7,11 @@ int main() {
     printf("Teste Escalonador RR com Prioridade\n");
     printf("========================\n\n");
 
-    // Adiciona tarefas com diferentes prioridades e bursts
-    add("Tarefa1", 2, 10);   // Prioridade 2, burst 10
-    add("Tarefa2", 1, 5);    // Prioridade 1 (mais alta), burst 5
-    add("Tarefa3", 3, 8);    // Prioridade 3, burst 8
-    add("Tarefa4", 2, 6);    // Prioridade 2, burst 6
-    add("Tarefa5", 1, 4);    // Prioridade 1, burst 4
+    add("Tarefa1", 2, 10, 25);  // deadline 25
+    add("Tarefa2", 1, 5, 15);   // deadline 15
+    add("Tarefa3", 3, 8, 30);   // deadline 30
+    add("Tarefa4", 2, 6, 20);   // deadline 20
+    add("Tarefa5", 1, 4, 10);   // deadline 10
 
     printf("\n>>> Iniciando Escalonamento...\n");
     schedule();
