@@ -12,6 +12,7 @@ typedef struct {
     int deadline;
     int periodo;
     int next_release;
+    int release_count;
 } Task;
 
 #endif // TASK_H

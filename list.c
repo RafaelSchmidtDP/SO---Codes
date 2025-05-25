@@ -13,7 +13,7 @@
 
 Task *create_task(char *name, int tid, int priority, int burst, int deadline, int periodo) {
     Task *task = (Task *)malloc(sizeof(Task));
-     if (!task) {
+    if (!task) {
         perror("Erro ao alocar memória para Task");
         exit(EXIT_FAILURE);
     }
@@ -22,11 +22,14 @@ Task *create_task(char *name, int tid, int priority, int burst, int deadline, in
     task->priority = priority;
     task->burst = burst;
     task->remaining = burst;
-    task->deadline = deadline;
+
+    task->deadline = deadline; // Primeiro deadline correto (tempo inicial + deadline relativo)
     task->periodo = periodo;
-    task->next_release = 0;
+    task->next_release = periodo; // Primeira liberação após o período inicial
+
     return task;
 }
+
 
 // Função auxiliar para liberar uma Task
 void free_task(Task *task) {
