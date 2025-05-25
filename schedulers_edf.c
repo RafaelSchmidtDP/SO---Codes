@@ -70,7 +70,7 @@ void schedule() {
     pthread_create(&timer_thread, NULL, timer_function, NULL);
 
     printf("\n[ESCALONADOR EDF PERIODICO E PREEMPTIVO INICIADO]\n");
-
+,
     Task *executando = NULL;
 
     while (rodando) {
