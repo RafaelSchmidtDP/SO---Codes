@@ -7,16 +7,15 @@
 #include "CPU.h"
 #include "schedulers_rr_p.h"
 
-#define QUANTUM 10   // Defina aqui o quantum desejado
-#define NUM_PRIORIDADES (MAX_PRIORITY - MIN_PRIORITY + 1)
+#define QUANTUM 2   // Defina aqui o quantum desejado
+
 
 // Filas separadas por prioridade
-struct node *filas[NUM_PRIORIDADES] = { NULL };
+struct node *filas[MAX_PRIORITY] = { NULL };
 
 // Gera IDs únicos para cada tarefa
 int tid_counter = 1;
 
-// Adiciona uma tarefa na fila correspondente à sua prioridade
 void add(char *name, int priority, int burst) {
     if (priority < MIN_PRIORITY || priority > MAX_PRIORITY) {
         printf("Erro: Prioridade inválida (%d). Deve estar entre %d e %d.\n",
@@ -26,18 +25,12 @@ void add(char *name, int priority, int burst) {
 
     Task *task = create_task(name, tid_counter++, priority, burst, 0, 0);
 
-    int idx = MAX_PRIORITY - priority; // Inverte prioridade (1 = mais alta)
-    insert_at_tail(&filas[idx], task);
+    insert_at_tail(&filas[priority - 1], task);
 }
 
-// Função principal de escalonamento RR com prioridades
 void schedule() {
-    printf("\n--- Escalonamento Round Robin com Prioridade ---\n");
-
     int tarefasRestantes = 0;
-
-    // Conta total de tarefas inicialmente
-    for (int i = 0; i < NUM_PRIORIDADES; i++) {
+    for (int i = 0; i < MAX_PRIORITY; i++) {
         struct node *temp = filas[i];
         while (temp != NULL) {
             tarefasRestantes++;
@@ -48,9 +41,11 @@ void schedule() {
     while (tarefasRestantes > 0) {
         int encontrouTarefa = 0;
 
-        // Percorre das prioridades mais altas (índice menor) para as mais baixas
-        for (int i = 0; i < NUM_PRIORIDADES; i++) {
-            if (filas[i] != NULL) {
+        Task *tarefasFinalizadas[100];
+        int finalizadasCount = 0;
+
+        for (int i = 0; i < MAX_PRIORITY; i++) {
+            while (filas[i] != NULL) {
                 encontrouTarefa = 1;
 
                 Task *tarefa = remove_first_task(&filas[i]);
@@ -61,18 +56,19 @@ void schedule() {
                 tarefa->burst -= slice;
 
                 if (tarefa->burst > 0) {
-                    // Tarefa não terminou, volta para o fim da fila da mesma prioridade
                     insert_at_tail(&filas[i], tarefa);
                 } else {
-                    // Tarefa concluída
-                    printf("Task [%s] (TID: %d) concluída.\n", tarefa->name, tarefa->tid);
-                    free_task(tarefa);
+                    tarefasFinalizadas[finalizadasCount++] = tarefa;
                     tarefasRestantes--;
                 }
-
-                // Executa apenas uma tarefa por vez na prioridade atual
-                break;
             }
+        }
+
+        printf("\n");
+
+        for (int j = 0; j < finalizadasCount; j++) {
+            printf("Task [%s] (TID: %d) concluída.\n", tarefasFinalizadas[j]->name, tarefasFinalizadas[j]->tid);
+            free_task(tarefasFinalizadas[j]);
         }
 
         if (!encontrouTarefa) {
@@ -80,6 +76,4 @@ void schedule() {
             break;
         }
     }
-
-    printf("\n--- Fim do Escalonamento ---\n");
 }
