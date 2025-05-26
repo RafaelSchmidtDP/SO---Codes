@@ -48,7 +48,7 @@ void *timer_thread(void *arg) {
  * @param periodo Período da tarefa.
  * @param arrival_time Tempo em que a primeira instância da tarefa chega.
  */
-void add_original_task_definition(char *name, int priority, int burst, int deadline_relative, int periodo, int arrival_time) {
+void add(char *name, int priority, int burst, int deadline_relative, int periodo, int arrival_time) {
     // Cria uma "task definition" - isto é, um objeto Task que guarda as propriedades originais.
     // O 'deadline_relative' é o valor original D.
     Task *new_task_def = create_task(name, priority, burst, deadline_relative, periodo);

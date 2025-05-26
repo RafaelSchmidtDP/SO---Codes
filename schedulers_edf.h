@@ -14,7 +14,7 @@ extern int timeline_output[MAX_SIMULATION_TIME];
 extern int simulation_completed_flag;
 
 // Adiciona uma definição de tarefa original (para que possamos gerenciar instâncias periódicas)
-void add_original_task_definition(char *name, int priority, int burst, int deadline, int periodo, int arrival_time);
+void add(char *name, int priority, int burst, int deadline, int periodo, int arrival_time);
 
 // Invoca o escalonador principal
 void schedule();

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "schedulers_edf.h" 
+#include "schedulers_aging.h" 
 #include "list.h"     // Inclua list.h para ter acesso a Task* e struct node
 #include "task.h"     // Inclua task.h para a definição de Task
 
@@ -10,21 +10,36 @@
 // Exemplo: #define MAX_SIMULATION_TIME 1000 
 
 int main() {
+
+
+
+    add("Tarefa1", 3, 9);
+    add("Tarefa2", 2, 6);
+    add("Tarefa3", 1, 15);
+    add("Tarefa4", 4, 11);
+    /*
+    // PARA RR E RR_P
+    
+    add("Task1",2,25);
+    add("Task2",1,16);
+    add("Task3",2,30);
+    */
+    
     // Definir as tarefas diretamente como no seu exemplo
     // Tarefa P1: Exec: 25, Period: 50, Deadline: 50, Arrival: 0
     // Tarefa P2: Exec: 30, Period: 75, Deadline: 75, Arrival: 0 (corrigida para deadline = 75)
-
+    /*
     printf("\n--- Leitura das Tarefas ---\n");
 
     // Adiciona a definição da Tarefa P1
     // add_original_task_definition(name, priority, burst, deadline_relative, periodo, arrival_time)
-    add_original_task_definition(strdup("P1"), 1, 25, 50, 50, 0); 
+    add(strdup("P1"), 1, 25, 50, 50, 0); 
     
     // Adiciona a definição da Tarefa P2
     // IMPORTANTE: Usei Deadline 75 aqui para replicar o comportamento escalonável do seu segundo exemplo.
     // Se você *realmente* quiser a deadline 30 para P2 (como no seu primeiro log), a simulação
     // *irá* mostrar perdas de prazo porque o conjunto não é escalonável com essa deadline apertada.
-    add_original_task_definition(strdup("P2"), 2, 30, 75, 75, 0); 
+    add(strdup("P2"), 2, 30, 75, 75, 0); 
 
     printf("\n--- Conjunto de Tarefas Definidas ---\n");
     // (Você pode adicionar um loop para imprimir a lista de definições originais
@@ -36,11 +51,11 @@ int main() {
     if (utilization > 1.0) {
         printf("Warning: Task set is not feasible (utilization > 1)\n");
     }
-
+*/
     printf("\n--- Starting Scheduling Simulation ---\n");
 
     // Invoca o escalonador
     schedule();
-
+    
     return 0;
 }

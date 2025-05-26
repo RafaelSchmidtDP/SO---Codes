@@ -176,3 +176,31 @@ Task* get_first_task(struct node *head) {
     return head->task;
 }
 
+Task* remove_first_task(struct node **head) {
+    if (*head == NULL) {
+        return NULL; // Lista vazia
+    }
+    struct node *temp = *head; // Guarda o nó da cabeça
+    Task *task = temp->task;   // Pega a tarefa do nó da cabeça
+    *head = temp->next;        // A cabeça da lista avança
+    free(temp);                // Libera a memória do nó removido
+    return task;               // Retorna a tarefa
+}
+
+// Percorre e imprime os elementos da lista
+void traverse_list(struct node *head) {
+    if (head == NULL) {
+        printf("Lista vazia.\n");
+        return;
+    }
+    struct node *temp = head;
+    while (temp != NULL) {
+        printf("[%s] [%d] [%d] [%d] [%d]\n",
+               temp->task->name,
+               temp->task->priority,
+               temp->task->burst,
+               temp->task->deadline,
+               temp->task->waiting_time);
+        temp = temp->next;
+    }
+}

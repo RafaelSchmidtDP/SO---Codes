@@ -10,14 +10,13 @@
 #define QUANTUM 2   // Defina aqui o quantum desejado
 
 
-// Filas separadas por prioridade
 struct node *fila = NULL;
 
 // Gera IDs únicos para cada tarefa
 int tid_counter = 1;
 
 void add(char *name, int priority, int burst) {
-    Task *task = create_task(name, tid_counter++,0,burst,0); // verificar o 0 final ali
+    Task *task = create_task(name, priority ,burst,0,0); // verificar o 0 final ali
     insert_at_tail(&fila, task);
 }
 
