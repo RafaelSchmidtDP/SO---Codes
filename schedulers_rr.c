@@ -16,7 +16,13 @@ struct node *fila = NULL;
 int tid_counter = 1;
 
 void add(char *name, int priority, int burst) {
-    Task *task = create_task(name, priority, burst, 0);
+    Task *task = (Task *)malloc(sizeof(Task));
+
+    task->name = strdup(name);  // Copia o nome da task
+    task->priority = priority;
+    task->burst = burst;
+    task->tid++;  
+
     insert_at_tail(&fila, task);
 }
 

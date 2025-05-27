@@ -23,9 +23,17 @@ void add(char *name, int priority, int burst) {
         return;
     }
 
-    Task *task = create_task(name, priority, burst, 0,0);
-    insert_at_tail(&filas[priority - 1], task);
+    // Cria a task diretamente
+    Task *task = (Task *)malloc(sizeof(Task));
+    task->name = strdup(name);  // Copia o nome da task
+    task->priority = priority;
+    task->burst = burst;
+    task->tid++;;  // Se você usa tid, ajusta aqui. Se não usar, pode remover.
+
+    // Insere na fila correspondente à prioridade
+    insert_at_tail(&filas[priority - 1], task);       // verificar isso
 }
+
 
 void schedule() {
     int tarefasRestantes = 0;

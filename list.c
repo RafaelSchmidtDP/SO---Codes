@@ -8,44 +8,12 @@
 #include "list.h" 
 #include "task.h" // Inclui o cabeçalho da tarefa para a definição da struct Task
 
-// Variável global estática para gerar IDs de tarefa únicos
-static int tid_counter = 0;
-
-
- 
-Task *create_task(char *name, int priority, int burst, int deadline) {
-    Task *task = (Task *)malloc(sizeof(Task));
-    if (task == NULL) {
-        perror("Falha ao alocar memória para a tarefa");
-        exit(EXIT_FAILURE);
-    }
-    task->name = strdup(name);
-    task->tid = ++tid_counter; // Atribui um TID único
-    task->priority = priority;
-    task->burst = burst;
-    task->deadline = deadline;
-    task->waiting_time = 0; // Inicializa o tempo de espera
-    return task;
-}
-
 
 void free_task(Task *task) {
     if (task) {
         free(task->name);
         free(task);
     }
-}
-
-
-void insert_at_head(struct node **head, Task *newTask) {
-    struct node *newNode = (struct node*) malloc(sizeof(struct node));
-    if (newNode == NULL) {
-        perror("Erro ao alocar memória para o nó");
-        exit(EXIT_FAILURE);
-    }
-    newNode->task = newTask;
-    newNode->next = *head; // O novo nó aponta para a antiga cabeça
-    *head = newNode;       // A cabeça da lista agora é o novo nó
 }
 
 
@@ -70,28 +38,6 @@ void insert_at_tail(struct node **head, Task *newTask) {
         temp->next = newNode; // Adiciona o novo nó no final
     }
 }
-
-
-void insert_sorted_by_deadline(struct node **head, Task *newTask) {
-    struct node *newNode = (struct node *)malloc(sizeof(struct node));
-    newNode->task = newTask;
-    newNode->next = NULL;
-
-    if (*head == NULL || newTask->deadline < (*head)->task->deadline) {
-        newNode->next = *head;
-        *head = newNode;
-    } else {
-        struct node *current = *head;
-        while (current->next != NULL &&
-               current->next->task->deadline <= newTask->deadline) {
-            current = current->next;
-        }
-        newNode->next = current->next;
-        current->next = newNode;
-    }
-}
-
-
 
 void delete_task(struct node **head, Task *task) {
     if (*head == NULL) {

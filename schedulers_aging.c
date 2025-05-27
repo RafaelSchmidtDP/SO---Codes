@@ -1,20 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
+#include <unistd.h>
 #include <string.h>
 
 #include "list.h"
+#include "CPU.h"
+#include "timer.h"
 #include "task.h"
 #include "schedulers_aging.h"
-#include "timer.h"  // Incluído para usar o timer e controle de quantum
 
-#define LIMIAR_AGING 2   // Tempo mínimo esperando para subir prioridade
+#define QUANTUM 3
+#define LIMIAR_AGING 2
 #define MAX_PRIORITY 10
 #define MIN_PRIORITY 1
-#define QUANTUM 3          // quantum de 3 ticks
 
-struct node *task_list = NULL;  // lista de tarefas
+// Inicializa todas as filas como NULL já direto aqui
+struct node *filas[MAX_PRIORITY] = { NULL };  
 
-// Adiciona uma nova tarefa à lista
+// Adiciona tarefa na fila correta pela prioridade
 void add(char *name, int priority, int burst) {
     if (priority < MIN_PRIORITY || priority > MAX_PRIORITY) {
         printf("Erro: Prioridade inválida (%d). Deve estar entre %d e %d.\n",
@@ -22,60 +26,94 @@ void add(char *name, int priority, int burst) {
         return;
     }
 
-    Task *task = create_task(name, priority, burst, 0);
-    insert_at_tail(&task_list, task);
+    Task *task = malloc(sizeof(Task));
+    task->name = strdup(name);
+    task->priority = priority;
+    task->burst = burst;
+    task->waiting_time = 0;
+
+    // Insere no final da fila correspondente
+    insert_at_tail(&filas[priority - 1], task);
 }
 
-// Pega a tarefa com a menor prioridade numérica (maior prioridade)
+// Retorna o próximo processo da maior prioridade com tarefas pendentes
 Task *proximo_processo() {
-    struct node *temp = task_list;
-    Task *menor = NULL;
-
-    while (temp != NULL) {
-        if (menor == NULL || temp->task->priority < menor->priority) {
-            menor = temp->task;
+    for (int i = 0; i < MAX_PRIORITY; i++) {
+        if (filas[i] != NULL) {
+            return filas[i]->task;  // primeira tarefa da fila i
         }
-        temp = temp->next;
     }
-
-    return menor;
+    return NULL;  // todas filas vazias
 }
 
-// Aplica envelhecimento (aging) às tarefas que estão esperando
+// Aplica envelhecimento promovendo tarefas para fila superior
 void aging(Task *executando) {
-    struct node *temp = task_list;
+    for (int i = 1; i < MAX_PRIORITY; i++) { // começa de 1 (prioridade 2)
+        struct node *temp = filas[i];
+        while (temp != NULL) {
+            Task *t = temp->task;
+            if (t != executando) {
+                t->waiting_time++;
 
-    while (temp != NULL) {
-        if (temp->task != executando) {
-            temp->task->waiting_time+= 1;  // incrementa tempo de espera
+                if (t->waiting_time >= LIMIAR_AGING && t->priority > MIN_PRIORITY) {
+                    // Remove da fila atual
+                    delete_task(&filas[i], t);
 
-            // Se ultrapassar limiar, sobe prioridade (diminui o número)
-            if (temp->task->waiting_time >= LIMIAR_AGING && temp->task->priority > MIN_PRIORITY) {
-                temp->task->priority--;
-                temp->task->waiting_time = 0;
-                printf("Aging aplicado: [%s] sobe para prioridade %d\n",
-                       temp->task->name, temp->task->priority);
+                    // Promove prioridade (fila anterior)
+                    t->priority--;
+                    t->waiting_time = 0;
+
+                    // Insere na fila de prioridade superior
+                    insert_at_tail(&filas[i - 1], t);
+
+                    printf("Aging aplicado: [%s] sobe para prioridade %d\n",
+                           t->name, t->priority);
+                }
             }
+            temp = temp->next;
         }
-        temp = temp->next;
     }
+}
+
+// Imprime as filas e a tarefa que está sendo executada
+void imprimir_filas_e_execucao(Task *executando) {
+    printf("\nEstado das filas:\n");
+    for (int i = 0; i < MAX_PRIORITY; i++) {
+        printf("Fila prioridade %d: ", i + 1);
+        if (filas[i] == NULL) {
+            printf("(vazia)\n");
+            continue;
+        }
+        struct node *temp = filas[i];
+        while (temp != NULL) {
+            Task *t = temp->task;
+            printf("[%s (Burst %d)] ", t->name, t->burst);
+            temp = temp->next;
+        }
+        printf("\n");
+    }
+
+    if (executando != NULL) {
+        printf("Executando: [%s] (Prioridade %d, Burst restante %d)\n",
+               executando->name, executando->priority, executando->burst);
+    } else {
+        printf("Nenhuma tarefa está sendo executada no momento.\n");
+    }
+    printf("\n");
 }
 
 // Função principal de escalonamento
-#define QUANTUM 3  // quantum fixo de 3 ticks (300ms)
-
 void schedule() {
-    printf("\n>>> Início do escalonamento (Aging)\n");
+    printf("\n>>> Início do escalonamento (Aging com múltiplas filas)\n");
 
     timer_start();
 
-    while (task_list != NULL) {
+    while (1) {
         Task *task = proximo_processo();
+        if (task == NULL) break;  // todas filas vazias
 
-        if (task == NULL)
-            break;
+        imprimir_filas_e_execucao(task);
 
-        // Ajusta quantum para o menor entre QUANTUM e burst restante
         int exec_ticks = (task->burst < QUANTUM) ? task->burst : QUANTUM;
 
         timer_set_quantum(exec_ticks);
@@ -93,7 +131,9 @@ void schedule() {
 
         if (task->burst <= 0) {
             printf("Tarefa [%s] finalizada!\n", task->name);
-            delete_task(&task_list, task);
+            // Remove uma tarefa da fila correta, usada após finalizar burst
+            int fila_idx = task->priority - 1;
+            delete_task(&filas[fila_idx], task);
             free_task(task);
         }
     }

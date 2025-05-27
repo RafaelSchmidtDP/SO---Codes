@@ -16,7 +16,7 @@ static int running = 0;           // controle da thread timer
 // Função da thread timer (simula hardware timer)
 static void *timer_thread_func(void *arg) {
     while (running) {
-        usleep(100000);  // 100ms = 1 tick
+        usleep(100000);  // 100ms = 0,1s = 1 tick
 
         pthread_mutex_lock(&mutex);
 
