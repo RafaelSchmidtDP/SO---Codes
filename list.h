@@ -24,7 +24,7 @@ Task* remove_first_task(struct node **head); // Remove e retorna a primeira tare
 void traverse_list(struct node *head); // Percorre e imprime a lista
 
 // Funções de criação e liberação de tarefas (geralmente em task.c/h, mas incluídas aqui para referência)
-Task *create_task(char *name, int priority, int burst, int deadline, int periodo);
+Task *create_task(char *name, int priority, int burst, int deadline);
 void free_task(Task *task); // Libera a memória alocada para uma tarefa
 
 #endif // LIST_H

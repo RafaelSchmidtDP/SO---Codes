@@ -5,37 +5,49 @@
 #include "list.h"
 #include "task.h"
 #include "CPU.h"
-#include "schedulers_rr_p.h"
+#include "timer.h"
+#include "schedulers_rr.h"  // Corrigido: estava referenciando o RR com prioridade
 
-#define QUANTUM 2   // Defina aqui o quantum desejado
-
-
+#define QUANTUM 3   // quantum em ticks (cada tick = 100ms)
 struct node *fila = NULL;
 
 // Gera IDs únicos para cada tarefa
+
 int tid_counter = 1;
 
 void add(char *name, int priority, int burst) {
-    Task *task = create_task(name, priority ,burst,0,0); // verificar o 0 final ali
+    Task *task = create_task(name, priority, burst, 0);
     insert_at_tail(&fila, task);
 }
 
 void schedule() {
+    timer_set_quantum(QUANTUM);
+    timer_start();
+
     while (fila != NULL) {
         Task *tarefa = remove_first_task(&fila);
 
         int slice = (tarefa->burst > QUANTUM) ? QUANTUM : tarefa->burst;
+        printf("Executando tarefa [%s] (TID: %d) por até %d ticks...\n", tarefa->name, tarefa->tid, slice);
 
-        run(tarefa, slice);
+        for (int i = 0; i < slice; i++) {
+            ru(tarefa, 1);  // Executa 1 tick de CPU
+            tarefa->burst--;
 
-        tarefa->burst -= slice;
+            timer_wait_quantum_expired();  // Espera próximo tick
+
+            if (tarefa->burst <= 0) {
+                break;
+            }
+        }
 
         if (tarefa->burst > 0) {
             insert_at_tail(&fila, tarefa);
         } else {
-            printf("Task [%s] (TID: %d) concluída.\n", tarefa->name, tarefa->tid);
+            printf("Tarefa [%s] (TID: %d) concluída.\n", tarefa->name, tarefa->tid);
             free_task(tarefa);
         }
     }
-}
 
+    timer_stop();
+}

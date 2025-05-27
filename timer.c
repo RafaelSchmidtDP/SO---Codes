@@ -4,8 +4,8 @@
 
 // Thread e sincronização
 static pthread_t timer_thread;
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t cond_tick = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+ pthread_cond_t cond_tick = PTHREAD_COND_INITIALIZER;
 
 static int quantum = 0;           // quantum em ticks (ex: 3 ticks)
 static int quantum_counter = 0;   // contador de ticks do quantum atual

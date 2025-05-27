@@ -1,61 +1,70 @@
-#include <stdio.h>
+/*#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "schedulers_aging.h" 
-#include "list.h"     // Inclua list.h para ter acesso a Task* e struct node
-#include "task.h"     // Inclua task.h para a definição de Task
+#include "schedulers_edf.h" 
+#include "list.h"     
+#include "task.h"     
+#include "timer.h"     
 
-// Certifique-se de que MAX_SIMULATION_TIME está definido em schedulers_edf.h ou um arquivo de config
-// Exemplo: #define MAX_SIMULATION_TIME 1000 
 
 int main() {
-
-
-
+    
+/*
     add("Tarefa1", 3, 9);
     add("Tarefa2", 2, 6);
     add("Tarefa3", 1, 15);
     add("Tarefa4", 4, 11);
-    /*
-    // PARA RR E RR_P
-    
-    add("Task1",2,25);
-    add("Task2",1,16);
-    add("Task3",2,30);
-    */
-    
-    // Definir as tarefas diretamente como no seu exemplo
-    // Tarefa P1: Exec: 25, Period: 50, Deadline: 50, Arrival: 0
-    // Tarefa P2: Exec: 30, Period: 75, Deadline: 75, Arrival: 0 (corrigida para deadline = 75)
-    /*
-    printf("\n--- Leitura das Tarefas ---\n");
+*/ 
+/*
+     timer_set_quantum(1);  // 1 tick = 100ms
 
-    // Adiciona a definição da Tarefa P1
-    // add_original_task_definition(name, priority, burst, deadline_relative, periodo, arrival_time)
-    add(strdup("P1"), 1, 25, 50, 50, 0); 
-    
-    // Adiciona a definição da Tarefa P2
-    // IMPORTANTE: Usei Deadline 75 aqui para replicar o comportamento escalonável do seu segundo exemplo.
-    // Se você *realmente* quiser a deadline 30 para P2 (como no seu primeiro log), a simulação
-    // *irá* mostrar perdas de prazo porque o conjunto não é escalonável com essa deadline apertada.
-    add(strdup("P2"), 2, 30, 75, 75, 0); 
-
-    printf("\n--- Conjunto de Tarefas Definidas ---\n");
-    // (Você pode adicionar um loop para imprimir a lista de definições originais
-    // se quiser que ela apareça aqui, mas não é estritamente necessário para o escalonador funcionar.)
-
-    // Para calcular e exibir a utilização (como no seu segundo exemplo de saída)
-    double utilization = (double)25 / 50 + (double)30 / 75;
-    printf("\nTotal Utilization: %.2lf\n", utilization);
-    if (utilization > 1.0) {
-        printf("Warning: Task set is not feasible (utilization > 1)\n");
-    }
-*/
+    // Adiciona tarefas periódicas: nome, prioridade, período, tempo de processamento
+    add_task("P1", 1, 50, 25);
+    add_task("P2", 1, 75, 30);
     printf("\n--- Starting Scheduling Simulation ---\n");
 
     // Invoca o escalonador
     schedule();
     
+    return 0;
+}
+*/
+#include <stdio.h>
+#include <stdlib.h>
+#include "schedulers_rr.h"  // ou como for seu header RR
+#include "list.h"     
+#include "task.h"     
+#include "timer.h" 
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        printf("Uso: %s <arquivo_de_tarefas.txt>\n", argv[0]);
+        return 1;
+    }
+
+    FILE *file = fopen(argv[1], "r");
+    if (!file) {
+        perror("Erro ao abrir arquivo");
+        return 1;
+    }
+
+    char line[256];
+    char nome[50];
+    int prioridade, burst;
+
+    while (fgets(line, sizeof(line), file)) {
+        // Ler linhas no formato "nome, prioridade, burst"
+        if (sscanf(line, "%[^,], %d, %d", nome, &prioridade, &burst) == 3) {
+            add(nome, prioridade, burst);
+        } else {
+            printf("Linha inválida ou formato incorreto: %s", line);
+        }
+    }
+
+    fclose(file);
+
+    schedule();  // função que roda o escalonador RR
+
     return 0;
 }
