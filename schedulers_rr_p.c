@@ -23,7 +23,7 @@ void add(char *name, int priority, int burst) {
         return;
     }
 
-    Task *task = create_task(name, priority, burst, 0);
+    Task *task = create_task(name, priority, burst, 0,0);
     insert_at_tail(&filas[priority - 1], task);
 }
 

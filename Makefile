@@ -1,15 +1,16 @@
 CC = gcc
 CFLAGS = -Wall -g -pthread
 LDFLAGS = -pthread
-OBJ = main_rr.o schedulers_rr.o task.o list.o timer.o
+
+OBJ = TESTE.o schedulers_rr.o task.o list.o timer.o
 
 all: rr_program
 
 rr_program: $(OBJ)
 	$(CC) $(CFLAGS) $(OBJ) -o rr_program $(LDFLAGS)
 
-main_rr.o: main_rr.c schedulers_rr.h task.h list.h timer.h
-	$(CC) $(CFLAGS) -c main_rr.c
+TESTE.o: TESTE.c schedulers_rr.h task.h list.h timer.h
+	$(CC) $(CFLAGS) -c TESTE.c
 
 schedulers_rr.o: schedulers_rr.c schedulers_rr.h task.h list.h timer.h
 	$(CC) $(CFLAGS) -c schedulers_rr.c

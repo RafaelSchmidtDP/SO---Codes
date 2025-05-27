@@ -31,7 +31,7 @@ void schedule() {
         printf("Executando tarefa [%s] (TID: %d) por até %d ticks...\n", tarefa->name, tarefa->tid, slice);
 
         for (int i = 0; i < slice; i++) {
-            ru(tarefa, 1);  // Executa 1 tick de CPU
+            run(tarefa, 1);  // Executa 1 tick de CPU
             tarefa->burst--;
 
             timer_wait_quantum_expired();  // Espera próximo tick
