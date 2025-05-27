@@ -13,6 +13,8 @@ int tid_counter = 1;
 
 // Adiciona tarefa na fila EDF
 void add(char *name, int priority, int burst, int deadline) {
+    printf("Adicionando tarefa: %s, Priority: %d, Burst: %d, Deadline: %d\n",
+           name, priority, burst, deadline);
     Task *task = (Task *)malloc(sizeof(Task));
 
     task->name = strdup(name);
@@ -64,6 +66,15 @@ void schedule() {
         for (int i = 0; i < tarefa->burst; i++) {
             run(tarefa, 1);
             timer_wait_quantum_expired();
+
+            int tempo_atual = get_global_time();
+            /*if (tempo_atual > tarefa->deadline) {
+                printf("!!! ALERTA: Tarefa %s (TID: %d) perdeu o deadline! Tempo atual: %d, Deadline: %d\n",
+                       tarefa->name, tarefa->tid, tempo_atual, tarefa->deadline);
+                // Se quiser, pode decidir interromper a execução da tarefa aqui
+                // break; // descomente se quiser interromper a tarefa quando perder deadline
+            }
+                */
         }
 
         printf("[EDF] Tarefa %s (TID: %d) concluída no tempo %d\n",

@@ -16,7 +16,6 @@ void free_task(Task *task) {
     }
 }
 
-
 void insert_at_tail(struct node **head, Task *newTask) {
     struct node *newNode = (struct node*) malloc(sizeof(struct node));
     if (newNode == NULL) {

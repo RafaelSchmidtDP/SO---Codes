@@ -19,27 +19,11 @@ int main() {
     // Invoca o escalonador
     schedule();
     */
-    timer_set_quantum(1); // Cada tick = 1 unidade de tempo
-    timer_start();
+    add_edf("Tarefa1", 1, 15, 10);  // burst 15, deadline 10
+    add_edf("Tarefa2", 1, 5, 20);   // burst 5, deadline 20
+    add_edf("Tarefa3", 1, 8, 25);   // burst 8, deadline 25
 
-    edf_init();
-
-    // Adiciona tarefas dinamicamente
-    add("TarefaA", 1, 4, 5);
-    add("TarefaB", 1, 3, 6);
-    add("TarefaB", 1, 2, 7);
-
-
-    edf_run();
-
-    edf_cleanup();
-
-    timer_stop();
-
-
-    edf_run();
-
-    edf_cleanup();
-    timer_stop();
+     schedule_edf();
+     
     return 0;
 }
