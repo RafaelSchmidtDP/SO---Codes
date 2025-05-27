@@ -6,13 +6,12 @@
 #include "task.h"
 #include "CPU.h"
 #include "timer.h"
-#include "schedulers_rr.h"  // Corrigido: estava referenciando o RR com prioridade
+#include "schedulers_rr.h"  
 
 #define QUANTUM 3   // quantum em ticks (cada tick = 100ms)
 struct node *fila = NULL;
 
 // Gera IDs únicos para cada tarefa
-
 int tid_counter = 1;
 
 void add(char *name, int priority, int burst) {
@@ -21,7 +20,8 @@ void add(char *name, int priority, int burst) {
     task->name = strdup(name);  // Copia o nome da task
     task->priority = priority;
     task->burst = burst;
-    task->tid++;  
+    task->tid = tid_counter++;
+
 
     insert_at_tail(&fila, task);
 }

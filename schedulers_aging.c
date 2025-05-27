@@ -11,7 +11,7 @@
 #include "schedulers_aging.h"
 
 #define QUANTUM 3
-#define LIMIAR_AGING 2
+#define LIMIAR_AGING 1
 #define MAX_PRIORITY 10
 #define MIN_PRIORITY 1
 
