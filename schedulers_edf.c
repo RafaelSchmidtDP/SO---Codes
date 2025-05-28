@@ -5,85 +5,82 @@
 #include "list.h"
 #include "task.h"
 #include "CPU.h"
-#include "timer.h"
 #include "schedulers_edf.h"
+#include "timer.h"  // 
 
-struct node *fila_tarefas = NULL;
-int tid_counter = 1;
+#define TIME_QUANTUM 10  // Quantum de execução por task (em ticks)
 
-// Adiciona tarefa na fila EDF
+// Lista de tarefas
+struct node *task_list = NULL;
+
+// Função para adicionar uma task (com deadline)
 void add(char *name, int priority, int burst, int deadline) {
-    printf("Adicionando tarefa: %s, Priority: %d, Burst: %d, Deadline: %d\n",
-           name, priority, burst, deadline);
-    Task *task = (Task *)malloc(sizeof(Task));
+    Task *newTask = malloc(sizeof(Task));
+    newTask->name = strdup(name);
+    newTask->priority = priority;
+    newTask->burst = burst;
+    newTask->remaining_burst = burst;
+    newTask->deadline = deadline;
+    newTask->start_time = get_global_time();  // Marca o tempo atual
 
-    task->name = strdup(name);
-    task->priority = priority;
-    task->burst = burst;
-    task->deadline = deadline;
-    task->waiting_time = 0;
-    task->tid = tid_counter++;
-
-    insert_at_tail(&fila_tarefas, task);
+    insert_at_tail(&task_list, newTask);
 }
 
-// Busca a tarefa com menor deadline
-Task *buscar_menor_deadline(struct node *head) {
-    if (head == NULL) {
-        return NULL;
-    }
+// Função auxiliar para buscar a task com menor deadline
+Task *get_task_with_earliest_deadline() {
+    if (task_list == NULL) return NULL;
 
-    struct node *atual = head;
-    Task *tarefa_menor = atual->task;
+    struct node *temp = task_list;
+    Task *earliest = temp->task;
 
-    while (atual != NULL) {
-        if (atual->task->deadline < tarefa_menor->deadline) {
-            tarefa_menor = atual->task;
+    while (temp != NULL) {
+        if (temp->task->deadline < earliest->deadline) {
+            earliest = temp->task;
         }
-        atual = atual->next;
+        temp = temp->next;
     }
 
-    return tarefa_menor;
+    return earliest;
 }
 
-// Loop principal do EDF
+// Função principal do escalonador EDF
 void schedule() {
-    timer_set_quantum(1);
+    timer_set_quantum(10);   // Quantum = 1 tick = 100ms
     timer_start();
 
-    printf("\n[EDF] Iniciando escalonamento...\n");
+    while (task_list != NULL) {
+        timer_wait_quantum_expired();
 
-    while (fila_tarefas != NULL) {
-        Task *tarefa = buscar_menor_deadline(fila_tarefas);
+        int clock_time = get_global_time();
 
-        if (tarefa == NULL) {
-            break;
-        }
+        printf("===== Clock Time: %d =====\n", clock_time);
 
-        printf("[EDF] Executando tarefa: %s (TID: %d, Deadline: %d, Burst: %d)\n",
-               tarefa->name, tarefa->tid, tarefa->deadline, tarefa->burst);
-
-        for (int i = 0; i < tarefa->burst; i++) {
-            run(tarefa, 1);
-            timer_wait_quantum_expired();
-
-            int tempo_atual = get_global_time();
-            /*if (tempo_atual > tarefa->deadline) {
-                printf("!!! ALERTA: Tarefa %s (TID: %d) perdeu o deadline! Tempo atual: %d, Deadline: %d\n",
-                       tarefa->name, tarefa->tid, tempo_atual, tarefa->deadline);
-                // Se quiser, pode decidir interromper a execução da tarefa aqui
-                // break; // descomente se quiser interromper a tarefa quando perder deadline
+        // Verificar deadlines
+        struct node *temp = task_list;
+        while (temp != NULL) {
+            if (clock_time > temp->task->deadline) {
+                printf("⚠️  Task %s perdeu o deadline! (Deadline: %d)\n", 
+                       temp->task->name, temp->task->deadline);
             }
-                */
+            temp = temp->next;
         }
 
-        printf("[EDF] Tarefa %s (TID: %d) concluída no tempo %d\n",
-               tarefa->name, tarefa->tid, get_global_time());
+        // Seleciona a task com menor deadline
+        Task *t = get_task_with_earliest_deadline();
+        if (t == NULL) continue;
 
-        delete_task(&fila_tarefas, tarefa);
-        free_task(tarefa);
+        int exec_time = (t->remaining_burst < TIME_QUANTUM) ? 
+                        t->remaining_burst : TIME_QUANTUM;
+
+        run(t, exec_time);
+
+        t->remaining_burst -= exec_time;
+
+        if (t->remaining_burst <= 0) {
+            printf("✅ Task %s finalizada.\n", t->name);
+            delete_task(&task_list, t);
+        }
     }
 
-    printf("[EDF] Todas as tarefas foram concluídas.\n");
     timer_stop();
 }

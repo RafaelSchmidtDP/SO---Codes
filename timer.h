@@ -3,10 +3,9 @@
 
 #include <pthread.h>
 
-void timer_start(void);
-void timer_stop(void);
-// Espera até o quantum (slice) expirar
-void timer_wait_quantum_expired(void);
-int get_global_time(void);
-void timer_set_quantum(int q);
+extern int time_elapsed; 
+
+void stop_timer();
+void start_timer();
+
 #endif // TIMER_H

@@ -32,7 +32,7 @@ void schedule() {
 
     while (fila != NULL) {
         Task *tarefa = remove_first_task(&fila);
-
+// quantum 4 - tempo 1 em 1 - 4+
         int slice = (tarefa->burst > QUANTUM) ? QUANTUM : tarefa->burst;
         printf("Executando tarefa [%s] (TID: %d) por até %d ticks...\n", tarefa->name, tarefa->tid, slice);
 

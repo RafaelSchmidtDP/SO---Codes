@@ -8,6 +8,8 @@ typedef struct {
     int burst;
     int deadline;
     int waiting_time;
+    int remaining_burst;
+    int start_time;
 } Task;
 
 
