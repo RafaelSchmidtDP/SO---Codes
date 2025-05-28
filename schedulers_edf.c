@@ -23,9 +23,11 @@ void add(char *name, int priority, int burst, int deadline) {
     newTask->tid = tid_counter++;
     newTask->deadline = deadline;
     newTask->waiting_time = 0;
-    newTask->arrival_time = time_elapsed;
+    newTask->remaining_burst = burst;
+    newTask->arrival_time = time_elapsed; 
+    newTask->start_time = -1;
 
-    printf("📦 [ADD] Task [%s] (TID: %d) added at time %d (deadline in %d)\n",
+    printf("[ADD] Task [%s] (TID: %d) added at time %d (deadline in %d)\n",
             newTask->name, newTask->tid, newTask->arrival_time, newTask->deadline);
 
     insert_at_tail(&task_list, newTask);
@@ -63,13 +65,16 @@ void print_task_list() {
     while (temp != NULL) {
         int abs_deadline = temp->task->arrival_time + temp->task->deadline;
         int ttd = time_to_deadline(temp->task);
-        printf(" - [%s] (TID:%d) | Burst:%d | Deadline:%d (absolute at %d) | Time to deadline:%d\n",
+        printf(" - [%s] (TID:%d) | Burst:%d | Deadline:%d (absolute at %d) | Time to deadline:%d | Start:%d | Arrival:%d\n",
             temp->task->name,
             temp->task->tid,
             temp->task->burst,
             temp->task->deadline,
             abs_deadline,
-            ttd);
+            ttd,
+            temp->task->start_time,
+            temp->task->arrival_time
+        );
         temp = temp->next;
     }
 }
@@ -85,24 +90,29 @@ void schedule() {
         Task *task = find_earliest_deadline();
 
         if (task == NULL) {
-            printf("⚠️  No task found. This should not happen!\n");
+            printf("No task found\n");
             break;
         }
 
         int remaining_deadline = time_to_deadline(task);
         int absolute_deadline = task->arrival_time + task->deadline;
 
+        // Marca o timestamp de início
+        if (task->start_time == -1) {
+            task->start_time = time_elapsed;
+        }
+
         if (remaining_deadline < 0) {
-            printf("⚠️  Task [%s] (TID:%d) MISSED its deadline! (Deadline was at time %d, current time %d)\n",
+            printf("Task [%s] (TID:%d) MISSED its deadline! (Deadline was at time %d, current time %d)\n",
                 task->name, task->tid, absolute_deadline, time_elapsed);
         } else {
-            printf("✅ Selected task: [%s] (TID:%d) with earliest deadline at time %d (in %d units)\n",
+            printf("Selected task: [%s] (TID:%d) with earliest deadline at time %d (in %d units)\n",
                 task->name, task->tid, absolute_deadline, remaining_deadline);
-            printf("🚀 Running task [%s] for %d units.\n", task->name, task->burst);
+            printf("Running task [%s] for %d units. Start time: %d\n", task->name, task->burst, task->start_time);
         }
 
         run(task, task->burst);
-
+        time_elapsed += task->burst;
         // Atualiza tempo de espera das outras tarefas
         struct node *temp = task_list;
         while (temp != NULL) {
@@ -118,6 +128,6 @@ void schedule() {
         printf("===============================================================\n");
     }
 
-    printf("\n🏁 All tasks completed at time %d\n", time_elapsed);
+    printf("\nAll tasks completed at time %d\n", time_elapsed);
     stop_timer();
 }
