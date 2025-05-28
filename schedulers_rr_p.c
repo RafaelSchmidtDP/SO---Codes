@@ -7,7 +7,7 @@
 #include "CPU.h"
 #include "schedulers_rr_p.h"
 
-#define QUANTUM 2   // Defina aqui o quantum desejado
+#define QUANTUM 2   
 
 
 // Filas separadas por prioridade
@@ -28,10 +28,10 @@ void add(char *name, int priority, int burst) {
     task->name = strdup(name);  // Copia o nome da task
     task->priority = priority;
     task->burst = burst;
-    task->tid++;;  // Se você usa tid, ajusta aqui. Se não usar, pode remover.
+    task->tid++;;  
 
     // Insere na fila correspondente à prioridade
-    insert_at_tail(&filas[priority - 1], task);       // verificar isso
+    insert_at_tail(&filas[priority - 1], task);     
 }
 
 void schedule() {

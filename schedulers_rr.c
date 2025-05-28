@@ -7,7 +7,7 @@
 #include "CPU.h"
 #include "schedulers_rr_p.h"
 
-#define QUANTUM 2   // Defina aqui o quantum desejado
+#define QUANTUM 2   
 
 struct node *fila = NULL;
 
