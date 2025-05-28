@@ -6,9 +6,9 @@
 #include "task.h"
 #include "CPU.h"
 #include "schedulers_rr_p.h"
-#include "timer.h"
 
-#define QUANTUM 2   // Quantum em unidades de tempo simuladas
+#define QUANTUM 2   // Defina aqui o quantum desejado
+
 
 // Filas separadas por prioridade
 struct node *filas[MAX_PRIORITY] = { NULL };
@@ -34,7 +34,6 @@ void add(char *name, int priority, int burst) {
     insert_at_tail(&filas[priority - 1], task);       // verificar isso
 }
 
-
 void schedule() {
     int tarefasRestantes = 0;
     for (int i = 0; i < MAX_PRIORITY; i++) {
@@ -58,13 +57,7 @@ void schedule() {
                 Task *tarefa = remove_first_task(&filas[i]);
                 int slice = (tarefa->burst > QUANTUM) ? QUANTUM : tarefa->burst;
 
-                timer_set_quantum(slice);
-                timer_start();
-
                 run(tarefa, slice);
-
-                timer_wait_quantum_expired();
-                timer_stop();
 
                 tarefa->burst -= slice;
 

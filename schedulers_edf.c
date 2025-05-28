@@ -1,86 +1,123 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "list.h"
 #include "task.h"
 #include "CPU.h"
-#include "schedulers_edf.h"
-#include "timer.h"  // 
-
-#define TIME_QUANTUM 10  // Quantum de execução por task (em ticks)
+#include "timer.h"
 
 // Lista de tarefas
 struct node *task_list = NULL;
 
-// Função para adicionar uma task (com deadline)
+// Gerador de IDs
+int tid_counter = 1;
+
+// Adiciona uma tarefa
 void add(char *name, int priority, int burst, int deadline) {
-    Task *newTask = malloc(sizeof(Task));
+    Task *newTask = (Task *) malloc(sizeof(Task));
     newTask->name = strdup(name);
     newTask->priority = priority;
     newTask->burst = burst;
-    newTask->remaining_burst = burst;
+    newTask->tid = tid_counter++;
     newTask->deadline = deadline;
-    newTask->start_time = get_global_time();  // Marca o tempo atual
+    newTask->waiting_time = 0;
+    newTask->arrival_time = time_elapsed;
+
+    printf("📦 [ADD] Task [%s] (TID: %d) added at time %d (deadline in %d)\n",
+            newTask->name, newTask->tid, newTask->arrival_time, newTask->deadline);
 
     insert_at_tail(&task_list, newTask);
 }
 
-// Função auxiliar para buscar a task com menor deadline
-Task *get_task_with_earliest_deadline() {
+// Calcula tempo restante até o deadline absoluto
+int time_to_deadline(Task *task) {
+    int absolute_deadline = task->arrival_time + task->deadline;
+    return absolute_deadline - time_elapsed;
+}
+
+// Busca a tarefa com deadline mais próximo
+Task* find_earliest_deadline() {
     if (task_list == NULL) return NULL;
 
     struct node *temp = task_list;
     Task *earliest = temp->task;
+    int earliest_time = time_to_deadline(earliest);
 
     while (temp != NULL) {
-        if (temp->task->deadline < earliest->deadline) {
+        int current_time = time_to_deadline(temp->task);
+        if (current_time < earliest_time) {
             earliest = temp->task;
+            earliest_time = current_time;
         }
         temp = temp->next;
     }
-
     return earliest;
 }
 
-// Função principal do escalonador EDF
+// Imprime o estado atual da fila
+void print_task_list() {
+    printf("🔍 Tasks in the system:\n");
+    struct node *temp = task_list;
+    while (temp != NULL) {
+        int abs_deadline = temp->task->arrival_time + temp->task->deadline;
+        int ttd = time_to_deadline(temp->task);
+        printf(" - [%s] (TID:%d) | Burst:%d | Deadline:%d (absolute at %d) | Time to deadline:%d\n",
+            temp->task->name,
+            temp->task->tid,
+            temp->task->burst,
+            temp->task->deadline,
+            abs_deadline,
+            ttd);
+        temp = temp->next;
+    }
+}
+
+// Função principal EDF
 void schedule() {
-    timer_set_quantum(10);   // Quantum = 1 tick = 100ms
-    timer_start();
+    start_timer();
 
     while (task_list != NULL) {
-        timer_wait_quantum_expired();
+        printf("\n================== Scheduler Status at time %d ==================\n", time_elapsed);
+        print_task_list();
 
-        int clock_time = get_global_time();
+        Task *task = find_earliest_deadline();
 
-        printf("===== Clock Time: %d =====\n", clock_time);
+        if (task == NULL) {
+            printf("⚠️  No task found. This should not happen!\n");
+            break;
+        }
 
-        // Verificar deadlines
+        int remaining_deadline = time_to_deadline(task);
+        int absolute_deadline = task->arrival_time + task->deadline;
+
+        if (remaining_deadline < 0) {
+            printf("⚠️  Task [%s] (TID:%d) MISSED its deadline! (Deadline was at time %d, current time %d)\n",
+                task->name, task->tid, absolute_deadline, time_elapsed);
+        } else {
+            printf("✅ Selected task: [%s] (TID:%d) with earliest deadline at time %d (in %d units)\n",
+                task->name, task->tid, absolute_deadline, remaining_deadline);
+            printf("🚀 Running task [%s] for %d units.\n", task->name, task->burst);
+        }
+
+        run(task, task->burst);
+
+        // Atualiza tempo de espera das outras tarefas
         struct node *temp = task_list;
         while (temp != NULL) {
-            if (clock_time > temp->task->deadline) {
-                printf("⚠️  Task %s perdeu o deadline! (Deadline: %d)\n", 
-                       temp->task->name, temp->task->deadline);
+            if (temp->task != task) {
+                temp->task->waiting_time += task->burst;
             }
             temp = temp->next;
         }
 
-        // Seleciona a task com menor deadline
-        Task *t = get_task_with_earliest_deadline();
-        if (t == NULL) continue;
+        delete_task(&task_list, task);
+        free_task(task);
 
-        int exec_time = (t->remaining_burst < TIME_QUANTUM) ? 
-                        t->remaining_burst : TIME_QUANTUM;
-
-        run(t, exec_time);
-
-        t->remaining_burst -= exec_time;
-
-        if (t->remaining_burst <= 0) {
-            printf("✅ Task %s finalizada.\n", t->name);
-            delete_task(&task_list, t);
-        }
+        printf("===============================================================\n");
     }
 
-    timer_stop();
+    printf("\n🏁 All tasks completed at time %d\n", time_elapsed);
+    stop_timer();
 }

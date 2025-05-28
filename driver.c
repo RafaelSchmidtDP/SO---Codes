@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
         //to EDF only
         //add(name,priority,burst, deadline);
 
-        free(temp);
+        //free(temp);  // codigo buga com isso as vezes
     }
 
     fclose(in);
