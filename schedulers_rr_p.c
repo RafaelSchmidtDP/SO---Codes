@@ -23,7 +23,7 @@ void add(char *name, int priority, int burst) {
         return;
     }
 
-    // Cria a task diretamente
+    // Cria a task diretamente,,,,,,,,,,,,,
     Task *task = (Task *)malloc(sizeof(Task));
     task->name = strdup(name);  // Copia o nome da task
     task->priority = priority;
@@ -39,18 +39,18 @@ void schedule() {
     for (int i = 0; i < MAX_PRIORITY; i++) {
         struct node *temp = filas[i];
         while (temp != NULL) {
-            tarefasRestantes++;
+            tarefasRestantes++;  // Pega quantas taks tem em todas as filas
             temp = temp->next;
         }
     }
 
-    while (tarefasRestantes > 0) {
+    while (tarefasRestantes > 0) { 
         int encontrouTarefa = 0;
 
         Task *tarefasFinalizadas[100];
         int finalizadasCount = 0;
 
-        for (int i = 0; i < MAX_PRIORITY; i++) {
+        for (int i = 0; i < MAX_PRIORITY; i++) { //Ele percorre as filas da prioridade mais alta para a mais baixa
             while (filas[i] != NULL) {
                 encontrouTarefa = 1;
 
