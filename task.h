@@ -8,9 +8,8 @@ typedef struct {
     int burst;
     int deadline;
     int waiting_time;
-    int remaining_burst;
-    int start_time; // nao usada
-    int arrival_time; // nao usada
+    int start_time; 
+    int arrival_time; 
 } Task;
 
 

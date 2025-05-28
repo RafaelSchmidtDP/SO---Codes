@@ -23,7 +23,6 @@ void add(char *name, int priority, int burst, int deadline) {
     newTask->tid = tid_counter++;
     newTask->deadline = deadline;
     newTask->waiting_time = 0;
-    newTask->remaining_burst = burst;
     newTask->arrival_time = time_elapsed; 
     newTask->start_time = -1;
 

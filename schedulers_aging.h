@@ -8,5 +8,5 @@
 void add(char *name, int priority, int burst);
 void schedule();
 void imprimir_filas_e_execucao(Task *executando);
-Task *proximo_processo(); // ver se pode ficar aqui 
+Task *proximo_processo(); 
 #endif // AGING_H
