@@ -9,8 +9,6 @@
 #define MAX_PRIORITY 10
 
 void add(char *name, int priority, int burst);
-
-
 void schedule();
 
 #endif // SCHEDULE_RR_H

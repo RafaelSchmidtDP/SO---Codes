@@ -108,11 +108,11 @@ void schedule() {
         imprimir_filas_e_execucao(task);
 
         int exec_ticks = (task->burst < QUANTUM) ? task->burst : QUANTUM;
-        int start_exec_time = time_elapsed;
+        int start_exec_time = time_elapsed; // Salvar o tempo em que a task começou a executar.
 
         // Executa até quantum ou fim do burst
-        while (time_elapsed - start_exec_time < exec_ticks) {
-            sleep(1); // Simula o tempo de execução
+        while (time_elapsed - start_exec_time < exec_ticks) { // Enquanto não passou o tempo do 
+            sleep(1); // Simula o tempo de execução           // quantum ou burst, espera...
         }
 
         task->burst -= exec_ticks;
